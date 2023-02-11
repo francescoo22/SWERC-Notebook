@@ -1,0 +1,14 @@
+//Binary search generalizzata: trova primo valore ( in intervallo [a,b) ) per cui funzione ritorna true
+//Assumption: func(n) ritorna false se n<N0, true se n>=N0
+template <class F>
+int binSearchGener (int a, int b, const F& func){
+	int mid;
+	while (a < b) {
+		mid = a + ((b - a) >> 1);
+		if (!func(mid))
+			a = mid + 1;
+		else
+			b = mid;
+	}
+	return a;
+}
