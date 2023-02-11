@@ -1,5 +1,3 @@
-int N,M,K;
-
 struct segTree{
     struct Node{
         ll d, lazy;
@@ -8,7 +6,7 @@ struct segTree{
     int n;
     void init(int x){
         n = 1; while( n < x ) n *= 2;
-        data.resize(n*2+10);
+        data.resize(n*2);
     }
     void propagate(int node, int nodeL, int nodeR){
         if( data[node].lazy == 0 ) return;
@@ -21,7 +19,8 @@ struct segTree{
         data[node].lazy = 0;
     }
 
-    void update(int l, int r, ll val, int node, int nodeL, int nodeR){
+    void update(int l, int r, ll val, int node=1, int nodeL=0, int nodeR=-1){
+    	if (nodeR==-1)	nodeR=n-1;
         propagate(node, nodeL, nodeR);
         if( l > nodeR || r < nodeL ) return;
         if( l <= nodeL && nodeR <= r ){
@@ -34,7 +33,8 @@ struct segTree{
         data[node].d = data[node*2].d + data[node*2+1].d;
     }
 
-    ll query(int l, int r, int node, int nodeL, int nodeR){
+    ll query(int l, int r, int node=1, int nodeL=0, int nodeR=-1){
+    	if (nodeR==-1)	nodeR=n-1;
         propagate(node, nodeL, nodeR);
         if( l > nodeR || r < nodeL ) return 0;
         if( l <= nodeL && nodeR <= r ){
