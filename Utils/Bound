@@ -1,5 +1,5 @@
-int bound(int[] data, int element){	
-	int first = 0, last = data.length;
+int bound(vector<int> data, int element){	
+	int first = 0, last = data.size();
 	int mid;
 	while (first < last) {
 		mid = first + ((last - first) >> 1); 
