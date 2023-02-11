@@ -1,0 +1,87 @@
+
+M://Ma come funziona se taglia in 2 posti?
+M:suppongo res ritorni il polygono tagliato, ah ma comunque ce ne sarebbero 2
+S:in effetti sono molto triggerato
+
+M:aspè proviamo a pseudo coddarlo
+S:Paxxo
+
+P:Raga sono frocio
+
+M: No dai non dire così, la tua capacità di scrivere codice intelligibile, non dovrebbe influire sulla tua sessualità
+S:Ma che state dicendo? Non capisco se siete seri o no
+M: credo lui fosse molto serio
+
+hai un vettore di punti
+per ogni punto del poligono ti salvi quello corrente e ciclicamente il precedente
+che fa cross? ah il prodotto vettoriale? //Adesso ce guardo
+Cioè non è proprio il prodotto vettoriale, penso che veda tipo l'orientamento (non sessuale)
+Ok quindi se l'orientamento tra cur e prev cambia, allora faccio:
+    aggiunge l'intersezione 
+altrimenti:
+    aggiungo il punto corrente
+
+no ma che sarebbe intersection? AHHH è per reference (per quello non capivo)
+ah praticamente prende solo il poligono che ha orientamento positivo
+
+ok quindi per avere l'altro basta mettere il ! prima di side nel secondo if
+
+ok ma perché fare una funzione così merdosa?
+ma tra l'altro non funziona solo se è convesso?
+
+sì
+
+basta fare una convex decomposition
+
+Ma sta roba ce la lasciamo sulla libreria? finche non ne troviamo una migliore
+
+no ma io intendevo sti commenti omofobi
+
+sì, quelli che stamperanno la libreria devono sapere che ci teniamo alla nostra sessualità e che non devono omosessualizzarci
+
+ma infatti alle swerc scorse hanno distribuito le magliette VIOLA, quest'anno le cose saranno diverse
+
+era viola perché siamo autistici come la persona da cui questo colore prende il nome
+
+lel
+
+comunque non so se ce l'abbiamo, ma forse scomporre i poligoni in poligoni convessi è una funzione utile
+
+mhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh, intendi triangoli?
+
+ah cavolo è vero, è ancora più facile
+
+allora basta triangolarizzare il poligono, poi usare sta funzione, sommare i perimetri e togliere (tutti i lati aggiunti dei triangoli e i tagli fatti)*2
+
+Ma questo risolve il problema, non adatta la funzione a poligoni generici
+
+ma questa funzione cosa vuoi che faccia? ritornare tutti i nuovi poligoni?
+
+s ì
+però ammetto che sia molto più cancra così
+
+
+
+
+triangolizzi, tagli e incolli. I lati dei triangoli aggiunti sono speciali e dopo il taglio diventano "appiccicosi". è un po' un casino perchè si dividono in 2
+
+è shi è troppo cancro da avere in libreria me sa? (e fu così che alle swerc venne fuori questo esatto problema)
+
+usi questa funzione e poi i segmenti il cui punto medio ricadono fuori dal poligono, li cancelli
+
+ma magari puoi semplicemente chiudere un poligono quando crossa
+
+anche, sì hai ragione
+
+c'è sempre il problema dei punti che cadono sulla retta? (e non dirmi di aggiungere noise pliz) forse non è un problema in realtà
+
+non so come funzioni cross, ma se trova quelli sulla retta, allora basta chiuderli come gli altri
+
+Overleaf >> Zoom! (no seriamente semmai la scriviamo con l'ausilio di discord) 
+
+Ma in realtà ora dovrei andare
+
+Ma sì un altro giorno, ovviamente tutto il discorso rimane
+
+Ah comunque non funziona lol
+\fi

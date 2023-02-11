@@ -1,0 +1,129 @@
+// DUE RETTE
+/* Prerequisiti:
+ * Operatori +, -, *
+ */
+int intersection(pt p1, pt p2, pt p3, pt p4, pt &r ){
+	// two lines given by $p_1\rightarrow p_2$, $p_3 \rightarrow p_4$, r is the intersection point
+	// returns: $-1$ if two lines are parallel
+	
+	dbl d = (p4.y - p3.y)*(p2.x-p1.x) - (p4.x - p3.x)*(p2.y - p1.y);
+	if( fabs( d ) < EPS ) return -1; 
+	// might need to do something special!!!
+
+    dbl ua = (p4.x - p3.x)*(p1.y-p3.y) - (p4.y-p3.y)*(p1.x-p3.x);
+	ua /= d;
+
+	r = p1 + (p2-p1)*ua;
+	return 0;
+}
+
+//INTERSEZIONE TRA SEGMENTI
+/* Prerequisiti
+ * Operatori -, *, /, ==
+ * pt.dot()
+ * pt.cross()
+ */
+int segmentIntersection(pt& s1, pt& e1, pt& s2, pt& e2, pt& r1, pt& r2) {
+    //intersection between s1->e1 and s2->e2 stored in r1->r2
+    //returns 0 if no intersection is found
+    //returns 1 if point intersection is found
+    //returns 2 if segment intersection is found
+	if (e1==s1) {
+		if (e2==s2) {
+			if (e1==e2) { r1 = e1; return 1; } //all equal
+			else return 0; //different point segments
+		} else return segmentIntersection(s2,e2,s1,e1,r1,r2);//swap
+	}
+	//segment directions and separation
+	pt v1 = e1-s1, v2 = e2-s2, d = s2-s1;
+	auto a = v1.cross(v2), a1 = v1.cross(d), a2 = v2.cross(d);
+	if (fabs(a) < EPS) { //if parallel
+		auto b1=s1.dot(v1), c1=e1.dot(v1),
+		     b2=s2.dot(v1), c2=e2.dot(v1);
+		if (fabs(a1) > EPS || fabs(a2) > EPS || max(b1,min(b2,c2))>min(c1,max(b2,c2)))
+			return 0;
+		r1 = min(b2,c2)<b1 ? s1 : (b2<c2 ? s2 : e2);
+		r2 = max(b2,c2)>c1 ? e1 : (b2>c2 ? s2 : e2);
+		return 2-(r1==r2);
+	}
+	if (a < 0) { a = -a; a1 = -a1; a2 = -a2; }
+	if (0<a1 || a<-a1 || 0<a2 || a<-a2)
+		return 0;
+	r1 = s1-v1*a2/a;
+	return 1;
+}
+
+//INTERSEZIONE TRA RETTA E CIRCONFERENZA
+/* Prerequisiti:
+ * operatori: +, -, *
+ * closestpt()
+ * pt.normalize()
+ * dist()
+ */
+int lineAndCircle(pt& oo, dbl r, pt& p1, pt& p2, pt& r1, pt& r2){
+    // retta passante per p1->p2, circonferenza di centro oo e raggio r
+	// returns: $-1$ if there is no intersection
+	//           $1$ if there is only one intersection
+	pt m;
+	closestpt(p1,p2,oo,m);
+	pt v = p2-p1;
+	v.normalize();
+	
+	dbl r0=dist(oo, m);
+	if(r0>r+EPS) return -1;
+	if(fabs(r0-r)<EPS){
+		r1=r2=m;
+		return 1;
+	}
+	dbl dd = sqrt(r*r-r0*r0);
+	r1 = m-v*dd; r2 = m+v*dd;
+	return 0;
+}
+
+//INTERSEZIONE TRA DUE CIRCONFERENZE
+/* Prerequisiti:
+ * operatori: +, -, *
+ * pt.normalize()
+ * dist()
+ * angle()
+ * rotate() 
+ */
+int CAndC(pt o1, dbl r1, pt o2, dbl r2, pt& q1, pt& q2){
+	// returns: $-1$ if no intersection or infinite intersection
+	//           $1$ if only one point
+
+	dbl r=dist(o1,o2);
+	if(r1<r2) { swap(o1,o2); swap(r1,r2); }
+	if(r<EPS) return -1;
+	if(r>r1+r2+EPS) return -1;
+	if(r<r1-r2-EPS) return -1;
+	pt v = o2-o1; v.normalize();
+	q1 = o1+v*r1;
+	
+	if(fabs(r-r1-r2)<EPS || fabs(r+r2-r1)<EPS){ 
+		q2=q1; 
+		return 1; 
+	}
+	dbl a=angle(r2, r, r1);
+	q2=q1;
+	rotate(o1, q1, a, q1);
+	rotate(o1, q2, -a, q2);
+	return 0;
+}
+
+//PUNTO E SEGMENTO
+/* Prerequisiti:
+ * triarea()
+ */
+int pAndSeg(pt& p1, pt& p2, pt& p){
+	// the relation of the point $p$ and the segment $p_1 \rightarrow p_2$.
+	// returns: $1$ if point is on the segment, $0$ if not on the line,
+	//         $-1$ if on the line but not on the segment
+	dbl s=triarea(p, p1, p2);
+	if(s>EPS) return 0;
+	dbl sg=(p.x-p1.x)*(p.x-p2.x);
+	if(sg>EPS) return -1;
+	sg=(p.y-p1.y)*(p.y-p2.y);
+	if(sg>EPS) return -1;
+	return(1);
+}

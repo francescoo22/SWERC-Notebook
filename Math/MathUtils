@@ -1,0 +1,108 @@
+ll gcd(ll a, ll b) {
+	while(b > 0){
+		ll tmp = a%b;
+		a = b;
+		b = tmp;
+	}
+	return a;
+}
+
+ll lcm(ll a, ll b){
+	return (a / gcd(a, b)) * b;
+}
+
+ll mod(ll a, ll M){
+	return (a%M + M)%M;
+}
+
+ll* extendedEuclid(ll a, ll b){ //finds x,y so that ax+by=gcd(a,b)
+	ll xx = 0, y = 0;
+	ll yy = 1, x = 1;
+	while(b > 0){
+		ll q = a / b;
+		ll tmp = b;  b = a%b;  a = tmp;
+		tmp = xx; xx = x - q*xx; x = tmp;
+		tmp = yy; yy = y - q*yy; y = tmp;
+	}
+	return new ll[3]{a, x, y};
+}
+
+vector<ll> modularLinearSolver(ll a, ll b, ll M){ //solution to ax = b (mod M)
+    	vector<ll> sol;
+	ll *tmp = extendedEuclid(a, M);
+	ll g = tmp[0], x = tmp[1], y = tmp[2];
+	if(b%g == 0){
+		x = mod(x*(b/g), M);
+		for(ll i=0; i<g; i++)
+			sol.push_back(mod(x + i*(M/g), M));
+	}
+	return sol;
+}
+
+ll modInverse(ll a, ll M){ // returns b so that ab = 1 (mod n)
+	ll *tmp = extendedEuclid(a, M);
+	ll g = tmp[0], x = tmp[1], y = tmp[2];
+	if(g > 1) return -1;
+	return mod(x, M);
+}
+
+ll* linearDiophantine(ll a, ll b, ll c){ // computes x,y so that ax+by=c
+	if(a==0 && b==0){
+		if(c==0) return NULL;
+		return new ll[2]{0,0};
+	}
+	if(a==0){
+		if(c%b == 0) return NULL;
+		return new ll[2]{0, c/b};
+	}
+	if(b==0){
+		if(c%a == 0) return NULL;
+		return new ll[2]{c/a, 0};
+	}
+	ll g = gcd(a, b);
+	if(c % g != 0) return NULL;
+	ll x = c / g * modInverse(a/g, b/g);
+	ll y = (c - a*x) / b;
+	return new ll[2]{x, y};
+}
+
+ll modMul(ll a, ll b,  ll M) {
+	ll res = 0;
+	a = a % M;
+	while (b > 0) { 
+	    if (b % 2 == 1)  {
+		res = (res + a) % M;
+	    }
+	    a = (a * 2) % M;
+	    b /= 2;
+	}
+	return res % M;
+}
+
+//Modular inverses in O(n)
+
+void modularInverse(int n, ll mod, ll inv[]){
+    inv[0] = inv[1] = 1;
+    for (ll i = 2; i <= n; i++)
+        inv[i] = inv[mod % i] *
+               (mod - mod / i) % mod;   
+}
+
+//some random primes grouped by number of digits
+
+3:  701 907 461 293 227
+4:  4999 7877 8297 7187 6113 
+5:  36151 43573 23333 33347 10883
+6:  163351 560171 904727 260861 262877
+7:  5825753 5121119 4913939 3467221 7185151
+8:  80073347 21132481 87758221 24752617 38782103
+9:  237221533 133213043 497221099 629585221 848288803
+10: 4412473771 6227581757 3520222469 9753582857 3821079593
+11: 30009468607 92536362263 14387330557 60767041711 90921619993
+12: 566896436753 282989435243 758573815339 290613731141 197823104263
+13: 3740751234533 8175463321919 7884244472747 3937428239201 8568777025961
+14: 52190506619803 96530044904023 27587626679099 44456673644401 85969089804077
+15: 501184916472301 507394247386111 551336928734227 466924720402927 172650622441097
+16: 6007662268159429 2690377262614969 6358570801419223 1009469562916679 4445465004195407
+17: 87953318548865839 58829400406351409 32314691658976081 58212500901254471 62089407877003231
+18: 605483459032862491 265692792379497649 580010135541218153 583532643049261397 534543190965268679

@@ -1,0 +1,41 @@
+
+//DISTANZA SEGMENTO PUNTO
+/* Prerequisiti:
+ * Operatori -, *, ==
+ * pt.length()
+ * pt.dist2()
+ * pt.dot()
+ */
+dbl segDist(pt& s, pt& e, pt& p) {
+    //distance between a point p and a segment s->e
+	if (s==e) return (p-s).length();
+	dbl d = (e-s).dist2();
+    dbl t = min(d,max((dbl).0,(p-s).dot(e-s)));
+	return ((p-s)*d-(e-s)*t).length()/d;
+}
+
+//DISTANZA TRA SEGMENTI
+/* Prerequisiti:
+ * segDist() //distanza segmento punto
+ */
+dbl seg2segDist(pt& p1,pt& p2,pt& p3,pt& p4){
+    //distance between segments p1->p2 and p3->p4
+    return min({segDist(p1,p2,p3), segDist(p1,p2,p4), segDist(p3,p4,p1), segDist(p3,p4,p2)});
+}
+
+//PUNTO SU UNA RETTA A DISTANZA MINIMA DA UN PUNTO
+/* Prerequisiti:
+ * Operatori +, -, *
+ * pt.normalize()
+ * triarea() //area triangolo
+ */
+void closestpt( pt p1, pt p2, pt p3, pt &r ){
+	// the closest point on the line $p_1 \rightarrow p_2$ to $p_3$, stored in r
+	if( fabs( triarea( p1, p2, p3 ) ) < EPS ){ 
+		r = p3; return; 
+	}
+	pt v = p2-p1;
+	v.normalize();
+	dbl pr = (p3.y-p1.y)*v.y + (p3.x-p1.x)*v.x;
+	r = p1+v*pr;
+}

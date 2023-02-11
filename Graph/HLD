@@ -1,0 +1,56 @@
+int n;
+vector<int>pa, dd, heavy, head, pos;
+vector<int>adj[maxn];
+int cur_pos;
+
+int dfs(int a) {
+    int siz = 1;
+    int msiz = 0;
+    for (auto i : adj[a]) {
+        if (i != pa[a]) {
+            pa[i] = a, dd[i] = dd[a] + 1;
+            int isiz = dfs(i);
+            siz += isiz;
+            if (isiz > msiz)
+                msiz = isiz, heavy[a] = i;
+        }
+    }
+    return siz;
+}
+
+void decomp(int a, int h) {
+    head[a] = h, pos[a] = cur_pos++;
+    if (heavy[a] != -1)
+        decomp(heavy[a], h);
+    for (auto i : adj[a]) {
+        if (i != pa[a] && i != heavy[a])
+            decomp(i, i);
+    }
+}
+
+void init() {
+    pa = vector<int>(n);
+    dd = vector<int>(n);
+    heavy = vector<int>(n, -1);
+    head = vector<int>(n);
+    pos = vector<int>(n);
+    cur_pos = 0;
+
+    dfs(0);
+    decomp(0, 0);
+}
+
+int query(int a, int b) {
+    int res = 0;
+    for (; head[a] != head[b]; b = pa[head[b]]) {
+        if (dd[head[a]] > dd[head[b]])
+            swap(a, b);
+        int cur_heavy_path_max = segment_tree_query(pos[head[b]], pos[b]);
+        res = max(res, cur_heavy_path_max);
+    }
+    if (dd[a] > dd[b])
+        swap(a, b);
+    int last_heavy_path_max = segment_tree_query(pos[a], pos[b]);
+    res = max(res, last_heavy_path_max);
+    return res;
+}

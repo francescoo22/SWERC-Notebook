@@ -1,0 +1,21 @@
+//PUNTI DOVE LE DUE TANGENTI PASSANTI PER UN PUNTO TOCCANO IL CERCHIO
+/* Prerequisiti:
+ * operatori: +, -, *
+ * dist()
+ * pt.dist2()
+ * pt.perp()
+ */
+int circleTangents(const pt &p, const pt &c, dbl r,pt& p1,pt& p2) {
+    //ritorna -1 se il punto è interno alla circonferenza
+    //ritorna 1 se il punto è sulla circonferenza
+    if(dist(p,c) + EPS < r)return -1;
+    if(dist(p,c) - EPS < r){
+        p1 = p2 = p;
+        return 1;
+    }
+	pt a = p-c;
+	dbl x = r*r/a.dist2(), y = sqrt(x-x*x);
+	p1 = c+a*x+a.perp()*y;
+    p2 = c+a*x-a.perp()*y;
+    return 0;
+}

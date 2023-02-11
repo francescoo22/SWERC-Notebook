@@ -1,0 +1,60 @@
+#define dbl double
+#define MAX_SIZE 1000
+
+const dbl PI = 2.0*acos(0.0);
+const dbl EPS = 1e-9; //too small/big???
+dbl DEG_to_RAD(dbl d) { return d * PI / 180.0; }
+dbl RAD_to_DEG(dbl r) { return r * 180.0 / PI; }
+
+struct pt {
+	dbl x,y;
+	dbl length() { return sqrt(x*x+y*y); }
+	dbl dist2() { return x*x + y*y; }
+	
+	int normalize(){
+		dbl l = length();
+		if(fabs(l)<EPS) return -1;
+		x/=l; y/=l;
+		return 0;
+	}
+	pt operator-(pt a){
+		return {x-a.x , y-a.y};
+	}
+	pt operator+(pt a){
+		return {x+a.x , y+a.y};
+	}
+	pt operator*(dbl sc){
+		return {x*sc , y*sc};
+	}
+	pt operator/(dbl sc){
+		return {x/sc , y/sc};
+	}
+	dbl cross(pt p) { return x*p.y - y*p.x; }
+	dbl cross(pt a, pt b) { return (a-*this).cross(b-*this); }
+	dbl dot(pt p) { return x*p.x + y*p.y; }
+	
+	pt perp() { return {-y, x}; }
+	
+	bool operator == (pt a){
+		return fabs(x-a.x) < EPS && fabs(y-a.y) < EPS;
+	}
+    
+    bool operator <(const pt& p)const&{
+        if(fabs(x - p.x) < EPS)
+            return y < p.y;
+        return x < p.x;
+    }
+};
+
+dbl dist(pt& a, pt& b){ //tanto vale usare length brodm
+	return sqrt((a.x-b.x)*(a.x-b.x) + (a.y-b.y)*(a.y-b.y));
+}
+
+void show(pt& p){
+	cout << "(" << p.x << ", " << p.y << ")" << endl;
+}
+void show(vector<pt>& p){
+	int i,n=p.size();
+	for(i=0;i<n;i++) show(p[i]); 
+	cout << ":)" << endl;
+}

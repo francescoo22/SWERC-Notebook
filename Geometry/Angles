@@ -1,0 +1,56 @@
+//ANGOLO TRA VETTORI
+/* Prerequisiti:
+ * operatori: -
+ * pt.normalize()
+ * pt.dot()
+ */
+dbl angle(pt& p1, pt& p2, pt& p3){
+	// angle from $p_1 \rightarrow p_2$ to $p_1 \rightarrow p_3$, returns $-\pi$ to %\pi%
+	pt va = p2-p1;
+	va.normalize();
+	pt vb; vb.x=-va.y; vb.y=va.x;
+	pt v = p3-p1;
+	dbl x,y;
+	x=v.dot(va);
+	y=v.dot(vb);
+	return(atan2(y,x));
+}
+
+//ANGOLO CON TEOREMA DEL COSENO
+/* Prerequisiti:
+ * sto gran catzo
+ */
+dbl angle(dbl a, dbl b, dbl c){ 
+    // $a^2 = b^2 + c^2 - 2bc\cos{\gamma}$
+	// in a triangle with sides $a$,$b$,$c$, the angle between $b$ and $c$
+	// we do not check if $a$,$b$,$c$ is a triangle here
+	dbl cs=(b*b+c*c-a*a)/(2.0*b*c);
+	return(acos(cs));
+}
+
+//ROTAZIONE DI UN CERTO ANGOLO
+/* Prerequisiti:
+ * operatori: +, -
+ */
+void rotate(pt p0, pt p1, dbl a, pt& r){
+	// rotate p1 around $p_0$ counterclockwise, by angle $a$
+	// don’t pass by reference for p1, so r and p1 can be the same
+	p1 = p1-p0;
+	r.x = cos(a)*p1.x-sin(a)*p1.y;
+	r.y = sin(a)*p1.x+cos(a)*p1.y;
+	r = r+p0;
+}
+
+//RIFLESSIONE DI UN PUNTO RISPETTO A UNA RETTA
+/* Prerequisiti:
+ * dist()
+ * angle()
+ * rotate()
+ */
+void reflect(pt& p1, pt& p2, pt p3, pt& r){
+	// $p_1 \rightarrow p_2$ line, reflect $p_3$ to get $r$.
+	if(dist(p1, p3)<EPS) {r=p3; return;}
+	dbl a=angle(p1, p2, p3);
+	r=p3;
+	rotate(p1, r, -2.0*a, r);
+}

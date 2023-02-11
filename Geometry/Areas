@@ -1,0 +1,28 @@
+dbl trap(pt a, pt b){
+	return (0.5*(b.x - a.x)*(b.y + a.y));
+}
+
+dbl triarea(pt a, pt b, pt c){
+	return fabs(trap(a,b)+trap(b,c)+trap(c,a));
+}
+
+//AREA DI UN POLIGONO
+/* Prerequisiti:
+ * trap()
+ */
+dbl area(vector<pt> &vin){ //not necessary convex
+    int n = vin.size();
+    dbl ret = 0.0;
+    for(int i = 0; i < n; i++)
+        ret += trap(vin[i], vin[(i+1)%n]);
+    return fabs(ret);
+}
+
+//AREA CON LA FORMULA DI ERONE
+/* Prerequisiti:
+ * lo swag
+ */
+dbl heronArea(dbl ab, dbl bc, dbl ca) {
+    dbl s = 0.5 * ab+bc+ca;
+    return sqrt(s) * sqrt(s - ab) * sqrt(s - bc) * sqrt(s - ca);
+}

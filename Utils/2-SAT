@@ -1,0 +1,64 @@
+#define pii pair<int,int>
+#define fi first
+#define se second
+
+vector<vector<int>> g, gt; 
+vector<bool> used;
+vector<int> order, comp;
+vector<bool> assignment; //in assignment viene salvato il risultato finale
+
+void dfs1(int v) {
+    used[v] = true;
+    for (int u : g[v]) {
+        if (!used[u])
+            dfs1(u);
+    }
+    order.push_back(v);
+}
+
+void dfs2(int v, int cl) {
+    comp[v] = cl;
+    for (int u : gt[v]) {
+        if (comp[u] == -1)
+            dfs2(u, cl);
+    }
+}
+
+bool solve_2sat(vector<pii> sat,int n){
+	//in sat vengono salvate le coppie (x_i || x_j) come pair di interi {2*i + neg_i,2*j + neg_j}
+	//rispettivamente nella pair {u,v} se u%2 == 0 allora u si riferisce a x_(u/2), altrimenti a NOT x_(u/2) (analogamente per v)
+	//è tutto 0_based
+	//n è il numero di variabili
+	int siz = 2*n;
+	g.assign(siz,vector<int>());
+	gt.assign(siz,vector<int>());
+	for(auto i:sat){
+		int a = i.fi, b = i.se;
+		int na = a^1, nb = b^1;
+		g[na].push_back(b);
+		gt[b].push_back(na);
+		g[nb].push_back(a);
+		gt[a].push_back(nb);
+	}
+	order.clear();
+    used.assign(siz, false);
+    for (int i = 0; i < siz; ++i) {
+        if (!used[i])
+            dfs1(i);
+    }
+
+    comp.assign(siz, -1);
+    for (int i = 0, j = 0; i < siz; ++i) {
+        int v = order[siz - i - 1];
+        if (comp[v] == -1)
+            dfs2(v, j++);
+    }
+	
+    assignment.assign(n , false);
+    for (int i = 0; i < siz; i += 2) {
+        if (comp[i] == comp[i + 1])
+            return false;
+        assignment[i / 2] = comp[i] > comp[i + 1];
+    }
+    return true;
+}

@@ -1,0 +1,171 @@
+mt19937 rng(chrono::steady_clock::now().time_since_epoch().count());
+
+typedef int x_type;
+struct item {
+    x_type x;
+    int y;
+    item *l, *r;
+    //int cnt;
+    //bool rev = 0; only in implicit treaps
+    item () { }
+    item (x_type x) : x(x), y(rng()), l(NULL), r(NULL) { }
+    item (x_type x, int y) : x(x), y(y), l(NULL), r(NULL) { }
+};
+typedef item* pitem;
+
+void split (pitem t, x_type x, pitem & l, pitem & r) {
+    if (!t)
+        l = r = NULL;
+    else if (t->x <= x)
+        split (t->r, x, t->r, r),  l = t;
+    else
+        split (t->l, x, l, t->l),  r = t;
+}
+
+void insert (pitem & t, pitem it) {
+    if (!t)
+        t = it;
+    else if (it->y > t->y)
+        split (t, it->x, it->l, it->r),  t = it;
+    else
+        insert (t->x <= it->x ? t->r : t->l, it);
+}
+
+void merge (pitem & t, pitem l, pitem r) {
+    if (!l || !r)
+        t = l ? l : r;
+    else if (l->y > r->y)
+        merge (l->r, l->r, r),  t = l;
+    else
+        merge (r->l, l, r->l),  t = r;
+}
+
+void erase (pitem & t, x_type x) {
+    if (t->x == x) {
+        pitem th = t;
+        merge (t, t->l, t->r);
+        delete th;
+    }
+    else
+        erase (x < t->x ? t->l : t->r, x);
+}
+
+pitem unite (pitem l, pitem r) {
+    if (!l || !r)  return l ? l : r;
+    if (l->y < r->y)  swap (l, r);
+    pitem lt, rt;
+    split (r, l->x, lt, rt);
+    l->l = unite (l->l, lt);
+    l->r = unite (l->r, rt);
+    return l;
+}
+
+int cnt (pitem t) {
+    return t ? t->cnt : 0;
+}
+
+void upd_cnt (pitem t) {
+    if (t)
+        t->cnt = 1 + cnt(t->l) + cnt (t->r);
+}
+
+//it's sufficient to add calls of upd_cnt() to the end of insert, erase, split and merge to keep cnt values up-to-date
+
+
+//construction in O(N) from a sorted array
+void heapify (pitem t) {
+    if (!t) return;
+    pitem max = t;
+    if (t->l != NULL && t->l->y > max->y)
+        max = t->l;
+    if (t->r != NULL && t->r->y > max->y)
+        max = t->r;
+    if (max != t) {
+        swap (t->y, max->y);
+        heapify (max);
+    }
+}
+
+pitem build (x_type * a, int n) {
+    // Construct a treap on values {a[0], a[1], ..., a[n - 1]}
+    if (n == 0) return NULL;
+    int mid = n / 2;
+    pitem t = new item (a[mid]);
+    t->l = build (a, mid);
+    t->r = build (a + mid + 1, n - mid - 1);
+    heapify (t);
+    upd_cnt(t);
+    return t;
+}
+
+// Implicit Treap
+
+void push (pitem it) {
+    if (it && it->rev) {
+        it->rev = false;
+        swap (it->l, it->r);
+        if (it->l)  it->l->rev ^= true;
+        if (it->r)  it->r->rev ^= true;
+    }
+}
+
+void merge (pitem & t, pitem l, pitem r) {
+    push (l);
+    push (r);
+    if (!l || !r)
+        t = l ? l : r;
+    else if (l->y > r->y)
+        merge (l->r, l->r, r),  t = l;
+    else
+        merge (r->l, l, r->l),  t = r;
+    upd_cnt (t);
+}
+
+void split (pitem t, pitem & l, pitem & r,int key, int add = 0) {
+    if (!t)
+        return void( l = r = 0 );
+    push (t);
+    int cur_key = add + cnt(t->l);
+    if (key <= cur_key)
+        split (t->l, l, t->l, key, add),  r = t;
+    else
+        split (t->r, t->r, r, key, add + 1 + cnt(t->l)),  l = t;
+    upd_cnt (t);
+}
+
+void reverse (pitem t, int l, int r) {
+    pitem t1, t2, t3;
+    split (t, t1, t2, l);
+    split (t2, t2, t3, r-l+1);
+    t2->rev ^= true;
+    merge (t, t1, t2);
+    merge (t, t, t3);
+}
+
+void insert(pitem & t, x_type x, int key){
+    pitem tmp = new item(0);
+	split(t, tmp->l, tmp->r, j);
+	merge(tmp->l,tmp->l,new item(x));
+	merge(t, tmp->l, tmp->r);
+}
+
+void erase (pitem & t, int key,int add = 0) {
+	int cur_key = cnt(t->l) + add;
+	if(cur_key == key){
+		pitem th = t;
+        merge (t, t->l, t->r);
+        delete th;
+	}else if(key < cur_key)
+		 erase(t->l, key, add);
+	else erase(t->r, key, add + cnt(t->l) + 1);
+	upd_cnt(t);
+}
+
+x_type value(pitem t, int key, int add = 0){
+	int cur_key = cnt(t->l) + add;
+	if(cur_key == key)
+		return t->x;
+	if(key < cur_key)
+		return value(t->l, key, add);
+	return value(t->r, key, add + cnt(t->l) + 1);
+}

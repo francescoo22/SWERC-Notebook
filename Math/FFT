@@ -1,0 +1,255 @@
+class FFT{
+    //not actually fft, it's number theoretic transform
+    private static long p = 4300210177L;
+    private static long q = 857728777;
+    private static long zeta = 3273;
+    private static int exp = 20;
+    private static long[] powers;
+    static {
+        powers = new long[(1 << exp) + 1];
+        powers[0] = 1;
+        for (int i = 1; i < powers.length; i++) powers[i] = mult(zeta, powers[i - 1]);
+    }
+
+    public static long[] multiply(long[] x, long[] y) {
+        // If the coefficients are negative place them in the range of [0, p)
+        for (int i = 0; i < x.length; i++) if (x[i] < 0) x[i] += p;
+        for (int i = 0; i < y.length; i++) if (y[i] < 0) y[i] += p;
+        int zLength = x.length + y.length - 1;
+        int logN = 32 - Integer.numberOfLeadingZeros(zLength - 1);
+        long[] xx = transform(x, logN, false);
+        long[] yy = transform(y, logN, false);
+        long[] zz = new long[1 << logN];
+        for (int i = 0; i < zz.length; i++)
+            zz[i] = mult(xx[i], yy[i]);
+        long[] nZ = transform(zz, logN, true);
+        long[] z = new long[zLength];
+        long nInverse = p - ((p - 1) >>> logN);
+        for (int i = 0; i < z.length; i++){
+            z[i] = mult(nInverse, nZ[i]);
+            if (z[i] >= Integer.MAX_VALUE) z[i] -= p;
+        }
+        return z;
+    }
+
+    private static long mult(long x, long y) {
+        long z = x * y;
+        if (z < 0) {
+          z = z % p + q;
+          return z < 0 ? z + p : z;
+        }
+        if (z < (1L << 56) && x > (1 << 28) && y > (1 << 28)) {
+          z = z % p + q;
+          return z < p ? z : z - p;
+        }
+        return z % p;
+    }
+
+    private static long[] transform(long[] v, int logN, boolean inverse) {
+        int n = 1 << logN;
+        long[] w = new long[n];
+        for (int i = 0; i < v.length; i++)
+            w[Integer.reverse(i) >>> 32 - logN] = v[i];
+        for (int i = 0; i < logN; i++) {
+            int jMax = 1 << i;
+            int kStep = 2 << i;
+            int index = 0;
+            int step = 1 << exp - i - 1;
+            if (inverse) {
+                index = 1 << exp;
+                step = -step;
+            }
+            for (int j = 0; j < jMax; j++) {
+                long zeta = powers[index];
+                index += step;
+                for (int k = j; k < n; k += kStep) {
+                    int kk = jMax | k;
+                    long x = w[k];
+                    long y = mult(zeta, w[kk]);
+                    long z = x + y;
+                    w[k] = z < p ? z : z - p;
+                    z = x - y;
+                    w[kk] = z < 0 ? z + p : z;
+                }
+            }
+        }
+        return w;
+    }
+}
+
+
+namespace fft {
+  typedef double dbl;
+
+  struct num {
+    dbl x, y;
+    num() { x = y = 0; }
+    num(dbl x, dbl y) : x(x), y(y) { }
+  };
+
+  inline num operator+(num a, num b) { return num(a.x + b.x, a.y + b.y); }
+  inline num operator-(num a, num b) { return num(a.x - b.x, a.y - b.y); }
+  inline num operator*(num a, num b) { return num(a.x * b.x - a.y * b.y, a.x * b.y + a.y * b.x); }
+  inline num conj(num a) { return num(a.x, -a.y); }
+
+  int base = 1;
+  vector<num> roots = {{0, 0}, {1, 0}};
+  vector<int> rev = {0, 1};
+
+  const dbl PI = acosl(-1.0);
+
+  void ensure_base(int nbase) {
+    if (nbase <= base) {
+      return;
+    }
+    rev.resize(1 << nbase);
+    for (int i = 0; i < (1 << nbase); i++) {
+      rev[i] = (rev[i >> 1] >> 1) + ((i & 1) << (nbase - 1));
+    }
+    roots.resize(1 << nbase);
+    while (base < nbase) {
+      dbl angle = 2 * PI / (1 << (base + 1));
+//      num z(cos(angle), sin(angle));
+      for (int i = 1 << (base - 1); i < (1 << base); i++) {
+        roots[i << 1] = roots[i];
+//        roots[(i << 1) + 1] = roots[i] * z;
+        dbl angle_i = angle * (2 * i + 1 - (1 << base));
+        roots[(i << 1) + 1] = num(cos(angle_i), sin(angle_i));
+      }
+      base++;
+    }
+  }
+
+  void fft(vector<num> &a, int n = -1) {
+    if (n == -1) {
+      n = a.size();
+    }
+    assert((n & (n - 1)) == 0);
+    int zeros = __builtin_ctz(n);
+    ensure_base(zeros);
+    int shift = base - zeros;
+    for (int i = 0; i < n; i++) {
+      if (i < (rev[i] >> shift)) {
+        swap(a[i], a[rev[i] >> shift]);
+      }
+    }
+    for (int k = 1; k < n; k <<= 1) {
+      for (int i = 0; i < n; i += 2 * k) {
+        for (int j = 0; j < k; j++) {
+          num z = a[i + j + k] * roots[j + k];
+          a[i + j + k] = a[i + j] - z;
+          a[i + j] = a[i + j] + z;
+        }
+      }
+    }
+/*    for (int len = 1; len < n; len <<= 1) {
+      for (int i = 0; i < n; i += 2 * len) {
+        for (int j = i, k = i + len; j < i + len; j++, k++) {
+          num z = a[k] * roots[k - i];
+          a[k] = a[j] - z;
+          a[j] = a[j] + z;
+        }
+      }
+    }*/
+  }
+
+  vector<num> fa, fb;
+
+  vector<int> multiply(vector<int> &a, vector<int> &b) {
+    int need = a.size() + b.size() - 1;
+    int nbase = 0;
+    while ((1 << nbase) < need) nbase++;
+    ensure_base(nbase);
+    int sz = 1 << nbase;
+    if (sz > (int) fa.size()) {
+      fa.resize(sz);
+    }
+    for (int i = 0; i < sz; i++) {
+      int x = (i < (int) a.size() ? a[i] : 0);
+      int y = (i < (int) b.size() ? b[i] : 0);
+      fa[i] = num(x, y);
+    }
+    fft(fa, sz);
+    num r(0, -0.25 / sz);
+    for (int i = 0; i <= (sz >> 1); i++) {
+      int j = (sz - i) & (sz - 1);
+      num z = (fa[j] * fa[j] - conj(fa[i] * fa[i])) * r;
+      if (i != j) {
+        fa[j] = (fa[i] * fa[i] - conj(fa[j] * fa[j])) * r;
+      }
+      fa[i] = z;
+    }
+    fft(fa, sz);
+    vector<int> res(need);
+    for (int i = 0; i < need; i++) {
+      res[i] = fa[i].x + 0.5;
+    }
+    return res;
+  }
+
+  vector<int> multiply_mod(vector<int> &a, vector<int> &b, int m, int eq = 0) {
+    int need = a.size() + b.size() - 1;
+    int nbase = 0;
+    while ((1 << nbase) < need) nbase++;
+    ensure_base(nbase);
+    int sz = 1 << nbase;
+    if (sz > (int) fa.size()) {
+      fa.resize(sz);
+    }
+    for (int i = 0; i < (int) a.size(); i++) {
+      int x = (a[i] % m + m) % m;
+      fa[i] = num(x & ((1 << 15) - 1), x >> 15);
+    }
+    fill(fa.begin() + a.size(), fa.begin() + sz, num {0, 0});
+    fft(fa, sz);
+    if (sz > (int) fb.size()) {
+      fb.resize(sz);
+    }
+    if (eq) {
+      copy(fa.begin(), fa.begin() + sz, fb.begin());
+    } else {
+      for (int i = 0; i < (int) b.size(); i++) {
+        int x = (b[i] % m + m) % m;
+        fb[i] = num(x & ((1 << 15) - 1), x >> 15);
+      }
+      fill(fb.begin() + b.size(), fb.begin() + sz, num {0, 0});
+      fft(fb, sz);
+    }
+    dbl ratio = 0.25 / sz;
+    num r2(0, -1);
+    num r3(ratio, 0);
+    num r4(0, -ratio);
+    num r5(0, 1);
+    for (int i = 0; i <= (sz >> 1); i++) {
+      int j = (sz - i) & (sz - 1);
+      num a1 = (fa[i] + conj(fa[j]));
+      num a2 = (fa[i] - conj(fa[j])) * r2;
+      num b1 = (fb[i] + conj(fb[j])) * r3;
+      num b2 = (fb[i] - conj(fb[j])) * r4;
+      if (i != j) {
+        num c1 = (fa[j] + conj(fa[i]));
+        num c2 = (fa[j] - conj(fa[i])) * r2;
+        num d1 = (fb[j] + conj(fb[i])) * r3;
+        num d2 = (fb[j] - conj(fb[i])) * r4;
+        fa[i] = c1 * d1 + c2 * d2 * r5;
+        fb[i] = c1 * d2 + c2 * d1;
+      }
+      fa[j] = a1 * b1 + a2 * b2 * r5;
+      fb[j] = a1 * b2 + a2 * b1;
+    }
+    fft(fa, sz);
+    fft(fb, sz);
+    vector<int> res(need);
+    for (int i = 0; i < need; i++) {
+      long long aa = fa[i].x + 0.5;
+      long long bb = fb[i].x + 0.5;
+      long long cc = fa[i].y + 0.5;
+      res[i] = (aa + ((bb % m) << 15) + ((cc % m) << 30)) % m;
+    }
+    return res;
+  }
+
+  vector<int> square_mod(vector<int> &a, int m) {
+    return multiply_mod(a, a, m, 1);
+  }
+};

@@ -1,0 +1,82 @@
+const int K = 26;
+
+struct Vertex {
+    int next[K];
+    bool leaf = false;
+    int p = -1;
+    int pch;
+    int link = -1;
+    int exit = 0;
+    int go[K];
+
+    Vertex(int p=-1, int ch='$') : p(p), pch(ch) {
+        fill(begin(next), end(next), -1);
+        fill(begin(go), end(go), -1);
+    }
+};
+
+vector<Vertex> t(1);
+
+void add_string(string const& s) {
+    int v = 0;
+    for (char ch : s) {
+        int c = ch - 'a';
+        if (t[v].next[c] == -1) {
+            t[v].next[c] = t.size();
+            t.emplace_back(v, c);
+        }
+        v = t[v].next[c];
+    }
+    t[v].leaf = true;
+}
+
+void construct_aho(){
+	queue<int> q;
+	q.push(0);
+	while(q.size()){
+		int x = q.front();
+		q.pop();
+		for(int i=0;i<K;i++){
+			if(t[x].next[i] >= 0)
+				q.push(t[x].next[i]);
+		}
+		if(x == 0){
+			t[x].link = 0;
+			for(int i=0;i<K;i++)
+				t[x].go[i] = (t[x].next[i] == -1 ? 0 : t[x].next[i]);
+		}else{
+			int p = t[x].p;
+			if(p == 0)t[x].link = 0;
+			else t[x].link = t[t[p].link].go[t[x].pch];
+			int l = t[x].link;
+			for(int i=0;i<K;i++)
+				t[x].go[i] = (t[x].next[i] == -1 ? t[l].go[i] : t[x].next[i]);
+			
+			t[x].exit = (t[l].leaf ? l : t[l].exit);
+		}
+	}
+}
+
+//go e get_link sono opzionali, da utilizzare solo se non si fa construct_aho
+int go(int v, char ch);
+
+int get_link(int v) {
+    if (t[v].link == -1) {
+        if (v == 0 || t[v].p == 0)
+            t[v].link = 0;
+        else
+            t[v].link = go(get_link(t[v].p), t[v].pch + 'a');
+    }
+    return t[v].link;
+}
+
+int go(int v, char ch) {
+    int c = ch - 'a';
+    if (t[v].go[c] == -1) {
+        if (t[v].next[c] != -1)
+            t[v].go[c] = t[v].next[c];
+        else
+            t[v].go[c] = v == 0 ? 0 : go(get_link(v), ch);
+    }
+    return t[v].go[c];
+} 

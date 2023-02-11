@@ -1,0 +1,58 @@
+#define ll long long
+#define mod 1000000007
+const int INF = 2; // it doesn't actually have to be infinity or a big number
+
+ll faste(ll a,ll p){
+    ll ris = 1;
+    while(p){
+        if(p & 1)ris = ris * a % mod;
+        a = a * a % mod;
+        p >>= 1;
+    }
+    return ris;
+}
+
+int gauss (vector < vector<ll> > a, vector<ll> & ans) {
+    int n = (int) a.size();
+    int m = (int) a[0].size() - 1;
+
+    vector<int> where (m, -1);
+    for (int col=0, row=0; col<m && row<n; ++col) {
+        int sel = row;
+        for (int i=row; i<n; ++i)
+            if (a[i][col])
+                sel = i;
+                
+        if (!a[sel][col])
+            continue;
+            
+        for (int i=col; i<=m; ++i)
+            swap (a[sel][i], a[row][i]);
+        where[col] = row;
+
+        for (int i=0; i<n; ++i)
+            if (i != row) {
+                ll c = a[i][col] * faste(a[row][col],mod-2) % mod;
+                for (int j=col; j<=m; ++j)
+                    a[i][j] = (a[i][j] - (a[row][j] * c % mod) + mod)%mod;
+            }
+        ++row;
+    }
+
+    ans.assign (m, 0);
+    for (int i=0; i<m; ++i)
+        if (where[i] != -1)
+            ans[i] = a[where[i]][m] * faste(a[where[i]][i],mod-2) % mod;
+    for (int i=0; i<n; ++i) {
+        ll sum = 0;
+        for (int j=0; j<m; ++j)
+            sum = (sum + ans[j] * a[i][j]) % mod;
+        if (sum != a[i][m])
+            return 0;
+    }
+
+    for (int i=0; i<m; ++i)
+        if (where[i] == -1)
+            return INF;
+    return 1;
+}

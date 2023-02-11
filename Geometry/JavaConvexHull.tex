@@ -1,0 +1,48 @@
+class ConvexHull{
+    static Point[] convexHull(Point[] points)
+    {
+        if(points.length <= 1) return points;
+        Arrays.sort(points);
+        
+        Point[] ch = new Point[points.length*2];
+        int k = 0;
+        for(int i=0; i<points.length; i++){
+            while(k >= 2 && cross(ch[k-2], ch[k-1], points[i]) <= 0)
+                k--;
+            ch[k++] = points[i];
+        }
+        int sizeHalf = k+1;
+        for(int i=points.length-1; i > 0; i--){
+            while(k >= sizeHalf && cross(ch[k-2], ch[k-1], points[i-1]) <= 0)
+                k--;
+            ch[k++] = points[i-1];
+        }
+        Point[] sol = new Point[k-1];
+        System.arraycopy(ch, 0, sol, 0, k-1);
+        return sol;
+    }
+
+    static int cross(Point o, Point a, Point b){
+        double tmp = (a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x);
+        if(tmp == 0) return 0;
+        return tmp > 0 ? 1 : -1;
+    }
+}
+
+class Point implements Comparable<Point>{
+    double x,y;
+    public Point(double _x, double _y){
+        x = _x;
+        y = _y;
+    }
+    public double dist(Point p){
+        return Math.hypot(x-p.x, y-p.y);
+    }
+    public int compareTo(Point p){
+        if(x==p.x){
+            if(y==p.y) return 0;
+            return (y > p.y) ? 1 : -1;
+        }
+        return (x > p.x) ? 1 : -1;
+    }
+}
