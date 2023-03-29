@@ -26,6 +26,6 @@ struct UnionFind {
 			j = i; i = tmp;
 		}
 		size[j] += size[i];
-		p[i] = j
+		p[i] = j;
     }
 };
